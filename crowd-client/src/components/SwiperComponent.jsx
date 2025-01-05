@@ -1,16 +1,18 @@
-import { useRef, useState } from "react";
-import { campaigns, myActivity, users } from "../../public/data";
+import { useRef, useState, useContext } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import Form from "react-bootstrap/Form";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+import axios from "axios";
+import { WalletContext } from "../ContextAPI/walletContext";
 
 function SwiperComponent() {
   const swiperRef = useRef(null);
-
-  const [campaignDetails, setCampaignDetails] = useState(""); // State for React-Quill
-  const [errors, setErrors] = useState({}); // State for error messages
+  const { account } = useContext(WalletContext); // Get account from context
+  const [campaignDetails, setCampaignDetails] = useState("");
+  const [errors, setErrors] = useState({});
+  const [campaignTitle, setCampaignTitle] = useState(""); // New state for campaign title
 
   const handleNext = () => {
     swiperRef.current?.slideNext();
@@ -20,16 +22,17 @@ function SwiperComponent() {
     swiperRef.current?.slidePrev();
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
-  
-    const title = formData.get("campaignTitle");
-    const description = campaignDetails; // React-Quill content
+
+    const title = campaignTitle; // Use the campaign title state
+    const description = campaignDetails; 
     const deadline = formData.get("campaignDeadline");
     const goal = formData.get("campaignGoal");
     const imageFile = formData.get("campaignImage");
-  
+
+    // Validation errors
     const errors = {};
     if (!title) {
       errors.title = "Campaign title is required";
@@ -43,46 +46,69 @@ function SwiperComponent() {
     if (!goal) {
       errors.goal = "Campaign goal is required";
     }
-  
+    if (!imageFile) {
+      errors.goal = "Campaign goal is required";
+    }
+
     if (Object.keys(errors).length > 0) {
       setErrors(errors);
       return;
     }
-  
+
+    // Prepare the data to send
     const newCampaign = {
-      id: campaigns.length + 1,
       title,
-      owner: users[0].firstName,
-      walletId: users[0].walletId,
-    //   image: imageFile ? URL.createObjectURL(imageFile) : null,
+      owner: "Owner Name", // You can dynamically set this from user data
+      account,
       description,
+      deadline,
+      walletId: account,
+      goal,
       amount: "€0.00",
       donations: 0,
       progress: 0,
     };
-  
-    campaigns.push(newCampaign);
-    myActivity.push({
-      id: myActivity.length + 1,
-      user: users[0].firstName,
-      description: `Funded ${title} with $0.00 ETH`,
-      amount: "$0.00",
-    });
-  
-    if (!Array.isArray(users[0].campaigns)) {
-      users[0].campaigns = [];
+
+    // Add the image file if it exists
+    if (imageFile) {
+      newCampaign.image = imageFile;
     }
-    users[0].campaigns.push(newCampaign.id);
-  
-    const dataString = `export const campaigns = ${JSON.stringify(campaigns, null, 2)};\nexport const myActivity = ${JSON.stringify(myActivity, null, 2)};\nexport const users = ${JSON.stringify(users, null, 2)};`;
-    const blob = new Blob([dataString], { type: "text/javascript" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "data.js";
-    a.click();
-    URL.revokeObjectURL(url);
+
+    // Use FormData to append campaign details and image
+    const campaignFormData = new FormData();
+    campaignFormData.append("title", title);
+    campaignFormData.append("owner", "Owner Name");
+    campaignFormData.append("walletId", account);
+    campaignFormData.append("description", description);
+    campaignFormData.append("deadline", deadline);
+    campaignFormData.append("goal", goal);
+    campaignFormData.append("amount", "€0.00");
+    campaignFormData.append("donations", 0);
+    campaignFormData.append("progress", 0);
+
+    if (imageFile) {
+      campaignFormData.append("image", imageFile);
+    }
+
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/campaigns",
+        campaignFormData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      console.log("Campaign created:", response.data);
+
+      // Redirect or notify the user about successful campaign creation
+      // router.push("/campaigns"); // Example redirect after success
+    } catch (error) {
+      console.error("Error creating campaign:", error);
+    }
   };
+
   return (
     <Swiper
       style={{ width: "auto", height: "600px" }}
@@ -103,6 +129,8 @@ function SwiperComponent() {
               type="text"
               name="campaignTitle"
               placeholder="Write your beautiful title here"
+              value={campaignTitle}
+              onChange={(event) => setCampaignTitle(event.target.value)}
               required
             />
             {errors.title && <div className="text-danger">{errors.title}</div>}
@@ -197,4 +225,5 @@ function SwiperComponent() {
 }
 
 export default SwiperComponent;
+
 

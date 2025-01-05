@@ -1,25 +1,50 @@
+import axios from "axios";
 import { useContext, useEffect, useState } from "react";
-import "../App.css"; // Import your CSS file for styling
+import "../App.css";
 import { WalletContext } from "../ContextAPI/walletContext";
 
 function ProfileSettings() {
   const { account, isConnected } = useContext(WalletContext);
   const [formData, setFormData] = useState(null);
+  const [campaigns, setCampaigns] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const API_URL = "http://localhost:5000";
 
   useEffect(() => {
-    const getMyProfile = async () => {
+    const fetchUserData = async () => {
+      if (!account) return;
+
+      setLoading(true);
+      setError(null);
       try {
-        const response = await fetch(`http://localhost:5000/api/users?walletId=${account}`);
-        const data = await response.json();
-        setFormData(data[0]); // Assuming the walletId is unique, hence we take the first user.
-      } catch (error) {
-        console.error("Error fetching profile:", error);
+        // Fetch user data by wallet ID
+        const response = await axios.get(`${API_URL}/api/users?walletId=${account}`);
+        const data = response.data;
+        if (!response.data || data.length === 0) {
+          throw new Error("User not found.");
+        }
+        const user = data[0];
+        setFormData(user);
+
+        // Fetch campaigns by wallet ID
+        const campaignsResponse = await axios.get(`${API_URL}/api/campaigns?walletId=${account}`);
+        const campaignsData = campaignsResponse.data;
+        if (!campaignsResponse.data) {
+          throw new Error("Failed to fetch campaigns.");
+        }
+        setCampaigns(campaignsData);
+      } catch (err) {
+        console.error("Error fetching user data:", err);
+        setError(err.message || "An error occurred.");
+      } finally {
+        setLoading(false);
       }
     };
-    if (account) {
-      getMyProfile();
-    }
-  }, [account]);
+
+    fetchUserData();
+  }, [account, API_URL]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -39,20 +64,18 @@ function ProfileSettings() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
-      const response = await fetch(`http://localhost:5000/api/users/${formData._id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-      if (response.ok) {
-        alert("Settings Saved Successfully!");
-      } else {
-        alert("Failed to save settings.");
+      const response = await axios.put(`${API_URL}/api/users/${formData._id}`, formData);
+      if (!response.data) {
+        throw new Error("Failed to update user profile.");
       }
-    } catch (error) {
-      console.error("Error saving settings:", error);
-      alert("Error saving settings.");
+      alert("Settings saved successfully!");
+    } catch (err) {
+      console.error("Error saving settings:", err);
+      alert(err.message || "Failed to save settings.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -62,9 +85,6 @@ function ProfileSettings() {
         <div className="text-center">
           <h1 className="display-1">Please connect your wallet</h1>
           <p className="lead">You need to connect your wallet to access this page.</p>
-          <button className="btn btn-success" onClick={() => connectWallet()}>
-            Connect Wallet
-          </button>
         </div>
       </div>
     );
@@ -73,188 +93,87 @@ function ProfileSettings() {
   return (
     <div className="container-fluid">
       <div className="row justify-content-center">
-        {formData && (
-          <div className="">
+        {loading ? (
+          <div>Loading...</div>
+        ) : error ? (
+          <div className="text-danger">{error}</div>
+        ) : (
+          formData && (
             <div className="card">
               <div className="card-header">
                 <h2>Personal Info</h2>
-                <p>Update your personal info with your data preferences</p>
+                <p>Update your personal info and manage your campaigns.</p>
               </div>
               <div className="card-body">
                 <form onSubmit={handleSubmit}>
-                  {/* Name Section */}
                   <div className="form-group">
                     <label>Name</label>
-                    <div className="input-row">
-                      <input
-                        type="text"
-                        name="firstName"
-                        value={formData.firstName}
-                        onChange={handleInputChange}
-                        placeholder="First Name"
-                        className="form-control"
-                      />
-                      <input
-                        type="text"
-                        name="lastName"
-                        value={formData.lastName}
-                        onChange={handleInputChange}
-                        placeholder="Last Name"
-                        className="form-control"
-                      />
-                    </div>
+                    <input
+                      type="text"
+                      name="firstName"
+                      value={formData.firstName || ""}
+                      onChange={handleInputChange}
+                      placeholder="First Name"
+                      className="form-control"
+                    />
+                    <input
+                      type="text"
+                      name="lastName"
+                      value={formData.lastName || ""}
+                      onChange={handleInputChange}
+                      placeholder="Last Name"
+                      className="form-control"
+                    />
                   </div>
-
-                  {/* Campaign Title */}
                   <div className="form-group">
                     <label>Email</label>
                     <input
                       type="email"
                       name="email"
-                      value={formData.email}
+                      value={formData.email || ""}
                       onChange={handleInputChange}
                       placeholder="Email"
                       className="form-control"
                     />
                   </div>
                   <div className="form-group">
-                    <label>Account</label>
+                    <label>Wallet ID</label>
                     <input
                       type="text"
-                      name="account"
-                      value={formData.walletId}
+                      name="walletId"
+                      value={formData.walletId || ""}
                       disabled
-                      placeholder="Account"
                       className="form-control"
                     />
                   </div>
-
-                  {/* Avatar Settings */}
                   <div className="form-group">
-                    <label>Profile Picture</label>
-                    <div className="avatar-settings">
-                      <div className="avatar-preview">{formData.person}</div>
-                      <div>
-                        <select
-                          name="person"
-                          value={formData.person}
-                          onChange={handleInputChange}
-                          className="form-control"
-                        >
-                          <option value="Matthew">Matthew</option>
-                        </select>
-                        <select
-                          name="skinTone"
-                          value={formData.skinTone}
-                          onChange={handleInputChange}
-                          className="form-control"
-                        >
-                          <option value="Black">Black</option>
-                        </select>
-                        <select
-                          name="pose"
-                          value={formData.pose}
-                          onChange={handleInputChange}
-                          className="form-control"
-                        >
-                          <option value="1 Happy">1 Happy</option>
-                        </select>
-                        <div>
-                          <label>
-                            <input
-                              type="radio"
-                              name="gender"
-                              value="Male"
-                              checked={formData.gender === "Male"}
-                              onChange={handleInputChange}
-                            />
-                            Male
-                          </label>
-                          <label>
-                            <input
-                              type="radio"
-                              name="gender"
-                              value="Female"
-                              checked={formData.gender === "Female"}
-                              onChange={handleInputChange}
-                            />
-                            Female
-                          </label>
-                        </div>
-                      </div>
-                    </div>
+                    <label>Your Campaigns</label>
+                    <ul>
+                      {campaigns.map((campaign) => (
+                        <li key={campaign._id}>
+                          {campaign.title} - €{campaign.amount}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-
-                  {/* Info Section */}
-                  <div className="form-group">
-                    <p>You will get 99.9% of the raised amount</p>
-                  </div>
-
-                  {/* Localization */}
-                  <div className="form-group">
-                    <label>Location</label>
-                    <input
-                      type="text"
-                      name="location"
-                      value={formData.location}
-                      onChange={handleInputChange}
-                      placeholder="Location"
-                      className="form-control"
-                    />
-                  </div>
-
-                  {/* Banner Image */}
                   <div className="form-group">
                     <label>Banner Image</label>
-                    <div className="image-upload">
-                      <div
-                        style={{
-                          border: "2px dashed #ccc",
-                          padding: "20px",
-                          borderRadius: "8px",
-                          textAlign: "center",
-                          backgroundColor: "#f9f9f9",
-                          cursor: "pointer",
-                        }}
-                        onClick={() => document.getElementById("fileInput").click()}
-                      >
-                        <p
-                          style={{
-                            margin: 0,
-                            color: "black",
-                            fontSize: "10px",
-                          }}
-                        >
-                          Click to upload or drag and drop your image here.
-                          <br />
-                          <small>SVG, PNG, JPG, GIF (max. 1MB)</small>
-                        </p>
-                      </div>
-                      <input
-                        id="fileInput"
-                        type="file"
-                        accept=".svg, .png, .jpg, .jpeg, .gif"
-                        onChange={handleImageUpload}
-                        style={{ display: "none" }}
-                      />
-                    </div>
+                    <input type="file" accept="image/*" onChange={handleImageUpload} className="form-control" />
                     {formData.bannerImage && (
                       <img
                         src={formData.bannerImage}
                         alt="Banner Preview"
-                        className="banner-preview"
+                        style={{ width: "100%", height: "auto", marginTop: "10px" }}
                       />
                     )}
                   </div>
-
-                  {/* Save Button */}
-                  <button type="submit" className="save-button">
-                    Save settings
+                  <button type="submit" className="btn btn-primary">
+                    Save Settings
                   </button>
                 </form>
               </div>
             </div>
-          </div>
+          )
         )}
       </div>
     </div>
@@ -262,3 +181,4 @@ function ProfileSettings() {
 }
 
 export default ProfileSettings;
+

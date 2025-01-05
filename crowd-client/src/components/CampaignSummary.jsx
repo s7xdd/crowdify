@@ -10,6 +10,7 @@ import Button from "react-bootstrap/Button";
 import Badge from "react-bootstrap/Badge";
 import ListGroup from "react-bootstrap/ListGroup";
 import { WalletContext } from "../ContextAPI/walletContext";
+import axios from "axios";
 
 const CampaignSummary = () => {
   const { account } = useContext(WalletContext); // Get the account from context
@@ -33,16 +34,22 @@ const CampaignSummary = () => {
   useEffect(() => {
     // Fetch campaigns based on the account (walletId)
     const getMyCampaigns = async () => {
-      const response = await fetch(`/api/campaigns?walletId=${account}`);
-      const data = await response.json();
-      setMyCampaigns(data);
+      try {
+        const response = await axios.get(`http://localhost:5000/api/campaigns?walletId=${account}`);
+        setMyCampaigns(response.data);
+      } catch (error) {
+        console.error("Error fetching campaigns:", error);
+      }
     };
 
     // Fetch activities (assuming activities are static for now)
     const getActivities = async () => {
-      const response = await fetch("/api/activities");
-      const data = await response.json();
-      setActivity(data);
+      try {
+        const response = await axios.get("http://localhost:5000/api/activities");
+        setActivity(response.data);
+      } catch (error) {
+        console.error("Error fetching activities:", error);
+      }
     };
 
     if (account) {
