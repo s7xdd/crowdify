@@ -86,6 +86,10 @@ function CampaignCard() {
                     <p className="text-primary">{campaign.amount || "0"}</p>
                     <p className="text-secondary">{campaign.progress || 0}%</p>
                   </div>
+                  <div className="d-flex justify-content-between">
+                    <button className="btn btn-success">Donate</button>
+                    <button className="btn border "><i className="fa-regular fa-heart"></i></button>
+                  </div>
                 </Card.Body>
               </Card>
             </div>

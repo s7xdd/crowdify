@@ -6,8 +6,8 @@ import { Link } from "react-router-dom";
 function CampaignPage() {
     return (
         <div style={{ minHeight: "100vh" }}>
-            <div className="container  py-5">
-            <div className="container d-flex mt-5 ms-4 justify-content-end pt-5">
+            <div className="container  ">
+            <div className="container d-flex mt-5 ms-4 justify-content-end  pb-2">
                  <Link to="/my-campaign"><button className="btn btn-success">My Campaign</button></Link>
                 
             </div>
