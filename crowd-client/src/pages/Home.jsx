@@ -12,6 +12,24 @@ function Home() {
     );
   };
 
+  const questions = [
+    {
+      question: "What is Crowdfunding?",
+      answer:
+        "Crowdfunding is the practice of funding a project or venture by raising small amounts of money from a large number of people, typically through the internet.",
+    },
+    {
+      question: "How does Crowdfunding work?",
+      answer:
+        "Crowdfunding works by allowing individuals to create a campaign and share it with their network of friends and family. People can then contribute to the campaign by donating money to support the cause.",
+    },
+    {
+      question: "What are the benefits of Crowdfunding?",
+      answer:
+        "The benefits of crowdfunding include increased exposure for your cause, the ability to reach a wider audience, and the potential to raise more money than traditional fundraising methods.",
+    },
+  ];
+
   return (
     <div className="container-fluid pb-5">
       <div className="container d-flex flex-column flex-md-row gap-5 align-items-center py-5">
@@ -74,7 +92,6 @@ function Home() {
             all bankruptcies in America. So how does crowdfunding work?
           </p>
         </div>
-        
       </div>
 
       <div className="container py-5">
@@ -114,32 +131,30 @@ function Home() {
       <div className="container py-5">
         <h3 className="text-dark mb-4">Frequently Asked Questions</h3>
         <div className="accordion accordion-flush">
-          {["Accordion Item #1", "Accordion Item #2", "Accordion Item #3"].map(
-            (item, index) => (
-              <div className="accordion-item" key={index}>
-                <h2 className="accordion-header">
-                  <button
-                    className={`accordion-button ${
-                      expandedQuestions[index] ? "" : "collapsed"
-                    }`}
-                    type="button"
-                    onClick={() => toggleAnswer(index)}
-                  >
-                    {item}
-                  </button>
-                </h2>
-                <div
-                  className={`accordion-collapse collapse ${
-                    expandedQuestions[index] ? "show" : ""
+          {questions.map((question, index) => (
+            <div className="accordion-item" key={index}>
+              <h2 className="accordion-header">
+                <button
+                  className={`accordion-button ${
+                    expandedQuestions[index] ? "" : "collapsed"
                   }`}
+                  type="button"
+                  onClick={() => toggleAnswer(index)}
                 >
-                  <div className="accordion-body">
-                    This is the {item.toLowerCase()}'s accordion body.
-                  </div>
+                  {question.question}
+                </button>
+              </h2>
+              <div
+                className={`accordion-collapse collapse ${
+                  expandedQuestions[index] ? "show" : ""
+                }`}
+              >
+                <div className="accordion-body">
+                  {question.answer}
                 </div>
               </div>
-            )
-          )}
+            </div>
+          ))}
         </div>
       </div>
     </div>
@@ -147,5 +162,4 @@ function Home() {
 }
 
 export default Home;
-
 
