@@ -83,7 +83,7 @@ function CampaignCard() {
                     ></div>
                   </div>
                   <div className="d-flex justify-content-between mt-2">
-                    <p className="text-primary">€{campaign.amount || "0"}</p>
+                    <p className="text-primary">{campaign.amount || "0"}</p>
                     <p className="text-secondary">{campaign.progress || 0}%</p>
                   </div>
                 </Card.Body>

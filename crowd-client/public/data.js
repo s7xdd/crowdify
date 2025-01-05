@@ -7,7 +7,7 @@ export const campaigns = [
     image: "https://annamrita.org/wp-content/uploads/2023/02/Why-should-you-donate-to-the-education-of-impoverished-children_.jpg",
     description:
       "Hi This is your Mr Teen...",
-    amount: "€8,516.95",
+    amount: "8,516.95",
     donations: 2840.4,
     progress: 30,
   },
@@ -19,7 +19,7 @@ export const campaigns = [
     image: "https://annamrita.org/wp-content/uploads/2023/02/Why-should-you-donate-to-the-education-of-impoverished-children_.jpg",
     description:
       "Hi This is your Miss Teen Carnival 2022 Doranyia Pascal I will be representing Saint Martin...",
-    amount: "€8,516.95",
+    amount: "8,516.95",
     donations: 2840.4,
     progress: 68,
   },

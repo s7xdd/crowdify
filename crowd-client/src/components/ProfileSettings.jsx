@@ -151,7 +151,7 @@ function ProfileSettings() {
                     <ul>
                       {campaigns.map((campaign) => (
                         <li key={campaign._id}>
-                          {campaign.title} - €{campaign.amount}
+                          {campaign.title} - {campaign.amount}
                         </li>
                       ))}
                     </ul>

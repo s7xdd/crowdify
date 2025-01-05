@@ -9,7 +9,7 @@ const campaignSchema = new Schema({
   walletId: { type: String, required: true },
   image: { type: String, required: true },
   description: { type: String, required: true },
-  amount: { type: String, required: true }, // Store as String to accommodate the "€" symbol
+  amount: { type: String, required: true }, // Store as String to accommodate the "" symbol
   donations: { type: Number, required: true },
   progress: { type: Number, required: true },
 });
