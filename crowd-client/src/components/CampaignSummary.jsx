@@ -71,8 +71,11 @@ const CampaignSummary = () => {
     try {
       const response = await axios.delete(`http://localhost:5000/api/campaigns/${campaignId}`);
       setMyCampaigns(myCampaigns.filter(campaign => campaign.id !== campaignId));
+      alert("Deleted successfully")
     } catch (error) {
       console.error("Error deleting campaign:", error);
+      alert("Delete failed")
+
     }
   };
 
