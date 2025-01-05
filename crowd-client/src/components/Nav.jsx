@@ -6,11 +6,22 @@ import Col from "react-bootstrap/Col";
 import Container from "react-bootstrap/Container";
 import logo from "../assets/fire-simple-bold-svgrepo-com copy.svg";
 import { Link } from "react-router-dom";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { WalletContext } from "../ContextAPI/walletContext";
 
 function ResponsiveNav() {
   const { account, isConnected, connectWallet, disconnectWallet } = useContext(WalletContext);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    // Implement search logic here
+    console.log("Search Term:", searchTerm);
+  };
 
   return (
     <Navbar
@@ -50,12 +61,14 @@ function ResponsiveNav() {
           </Nav>
 
           {/* Search and Wallet Actions */}
-          <Form className="d-flex align-items-center gap-3 mt-3 mt-lg-0">
+          <Form className="d-flex align-items-center gap-3 mt-3 mt-lg-0" onSubmit={handleSearchSubmit}>
             <Form.Control
               type="text"
               placeholder="Search"
               className="rounded"
               style={{ height: "40px", minWidth: "150px" }}
+              value={searchTerm}
+              onChange={handleSearchChange}
             />
 
             <div>
@@ -95,3 +108,4 @@ function ResponsiveNav() {
 }
 
 export default ResponsiveNav;
+

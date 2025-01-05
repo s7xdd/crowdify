@@ -14,98 +14,6 @@ app.use(express.json());
 // Connect to MongoDB
 connectDB();
 
-// Seeding function to add initial data
-const seedDatabase = async () => {
-  try {
-    // Check if there are campaigns, activities, or users already in the database
-    const campaignCount = await Campaign.countDocuments();
-    const activityCount = await Activity.countDocuments();
-    const userCount = await User.countDocuments();
-
-    if (campaignCount === 0) {
-      const campaigns = [
-        {
-          title: "Campaign 1",
-          owner: "Owner 1",
-          walletId: "0x12345",
-          image: "https://example.com/campaign1.jpg",
-          description: "Campaign description here",
-          amount: "1000",
-          donations: 500,
-          progress: 50,
-        },
-        {
-          title: "Campaign 2",
-          owner: "Owner 2",
-          walletId: "0x67890",
-          image: "https://example.com/campaign2.jpg",
-          description: "Campaign description here",
-          amount: "3000",
-          donations: 1500,
-          progress: 50,
-        },
-      ];
-      await Campaign.insertMany(campaigns);
-      console.log("Campaigns seeded.");
-    }
-
-    if (activityCount === 0) {
-      const activities = [
-        {
-          user: "User 1",
-          description: "Donated $100 to Campaign 1",
-          amount: "$100",
-        },
-        {
-          user: "User 2",
-          description: "Donated $200 to Campaign 2",
-          amount: "$200",
-        },
-      ];
-      await Activity.insertMany(activities);
-      console.log("Activities seeded.");
-    }
-
-    if (userCount === 0) {
-      const users = [
-        {
-          firstName: "John",
-          lastName: "Doe",
-          email: "john@example.com",
-          person: "John's Person",
-          walletId: "0x12345",
-          skinTone: "light",
-          pose: "smiling",
-          gender: "male",
-          location: "USA",
-          bannerImage: "https://example.com/banner1.jpg",
-          campaigns: [],
-        },
-        {
-          firstName: "Jane",
-          lastName: "Doe",
-          email: "jane@example.com",
-          person: "Jane's Person",
-          walletId: "0x67890",
-          skinTone: "dark",
-          pose: "serious",
-          gender: "female",
-          location: "Canada",
-          bannerImage: "https://example.com/banner2.jpg",
-          campaigns: [],
-        },
-      ];
-      await User.insertMany(users);
-      console.log("Users seeded.");
-    }
-  } catch (err) {
-    console.error("Error seeding database:", err);
-  }
-};
-
-// Call the seed function
-seedDatabase();
-
 // Get all activities
 app.get("/api/activities", async (req, res) => {
   try {
@@ -192,10 +100,9 @@ app.delete("/api/campaigns/:id", async (req, res) => {
         return res.status(404).json({ message: "Campaign not found" });
       }
   
-      // Remove the campaign reference from users' campaigns array
       await User.updateMany(
-        { campaigns: id }, // Find users who have this campaign in their campaigns list
-        { $pull: { campaigns: id } } // Remove the campaign from their campaigns list
+        { campaigns: id },
+        { $pull: { campaigns: id } } 
       );
   
       res.status(200).json({ message: "Campaign deleted successfully" });

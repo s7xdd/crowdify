@@ -31,13 +31,17 @@ e.preventDefault();
     setAccount(null);
     setIsConnected(false);
   };
-useEffect(() => {
-  const storedAccount = localStorage.getItem('account');
-  if (storedAccount) {
-    setAccount(storedAccount);
-    setIsConnected(true);
-  }
-},[])
+
+  useEffect(() => {
+    const storedAccount = localStorage.getItem('account');
+    if (storedAccount) {
+      setAccount(storedAccount);
+      setIsConnected(true);
+    } else {
+      connectWallet();
+    }
+  },[]);
+
   useEffect(() => {
     if (window.ethereum) {
       window.ethereum.on('accountsChanged', (accounts) => {
@@ -69,3 +73,4 @@ useEffect(() => {
     </WalletContext.Provider>
   );
 };
+
