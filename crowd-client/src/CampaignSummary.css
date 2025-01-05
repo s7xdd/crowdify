@@ -1,0 +1,25 @@
+.campaign-summary {
+    background-color: #f9f9f9;
+    padding: 2rem;
+  }
+  
+  .campaign-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .campaign-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .campaign-card .progress {
+    height: 5px;
+    border-radius: 5px;
+  }
+  
+  .activity .list-group-item {
+    background-color: #fff;
+    border: 1px solid #ddd;
+  }
+  
