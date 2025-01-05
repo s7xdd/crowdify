@@ -67,6 +67,15 @@ const CampaignSummary = () => {
     setLgShow(false);
   };
 
+  const handleDelete = async (campaignId) => {
+    try {
+      const response = await axios.delete(`http://localhost:5000/api/campaigns/${campaignId}`);
+      setMyCampaigns(myCampaigns.filter(campaign => campaign.id !== campaignId));
+    } catch (error) {
+      console.error("Error deleting campaign:", error);
+    }
+  };
+
   return (
     <>
       <Container className="py-5">
@@ -111,6 +120,7 @@ const CampaignSummary = () => {
                           <Card.Text>
                             Total donations: ${campaign.donations.toFixed(2)}
                           </Card.Text>
+                          <Button variant="danger" onClick={(e) => { e.stopPropagation(); handleDelete(campaign._id); }}>Delete</Button>
                         </Card.Body>
                       </Card>
                     </Col>
@@ -221,3 +231,4 @@ const CampaignSummary = () => {
 };
 
 export default CampaignSummary;
+

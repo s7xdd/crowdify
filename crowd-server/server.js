@@ -179,6 +179,31 @@ app.get("/api/campaigns", async (req, res) => {
       res.status(500).json({ message: err.message });
     }
   });
+
+// Delete a campaign
+app.delete("/api/campaigns/:id", async (req, res) => {
+    const { id } = req.params;
+    
+    try {
+      // Find the campaign by id and delete it
+      const campaign = await Campaign.findByIdAndDelete(id);
+      
+      if (!campaign) {
+        return res.status(404).json({ message: "Campaign not found" });
+      }
+  
+      // Remove the campaign reference from users' campaigns array
+      await User.updateMany(
+        { campaigns: id }, // Find users who have this campaign in their campaigns list
+        { $pull: { campaigns: id } } // Remove the campaign from their campaigns list
+      );
+  
+      res.status(200).json({ message: "Campaign deleted successfully" });
+    } catch (err) {
+      res.status(500).json({ message: "Error deleting campaign", error: err.message });
+    }
+  });
+  
   
 
 // Get a user by walletId
