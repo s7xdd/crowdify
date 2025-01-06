@@ -1,17 +1,15 @@
 const express = require("express");
 const cors = require("cors");
 const connectDB = require("./db/connection");
-const { Campaign, Activity, User } = require("./db/schema"); // Ensure models are correctly imported
+const { Campaign, Activity, User } = require("./db/schema"); 
 const multer = require("multer");
 const upload = multer({ dest: "uploads/" });
 
 const app = express();
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Connect to MongoDB
 connectDB();
 
 const ensureUserExists = async (req, res, next) => {
@@ -25,7 +23,6 @@ const ensureUserExists = async (req, res, next) => {
     let user = await User.findOne({ walletId });
 
     if (!user) {
-      // Create a new user with default or provided values
       user = new User({
         walletId,
         firstName: firstName || "Default",
@@ -41,7 +38,7 @@ const ensureUserExists = async (req, res, next) => {
       console.log(`Created new user for walletId: ${walletId}`);
     }
 
-    req.user = user; // Attach the user object to the request
+    req.user = user;
     next();
   } catch (err) {
     res.status(500).json({ message: "Error checking/creating user", error: err.message });
@@ -49,7 +46,6 @@ const ensureUserExists = async (req, res, next) => {
 };
 
 
-// Get all activities
 app.get("/api/activities", async (req, res) => {
   try {
     const activities = await Activity.find();
@@ -103,11 +99,11 @@ app.post("/api/campaigns", upload.single("image"), ensureUserExists, async (req,
     const { title, walletId, description, amount, donations, progress } = req.body;
     const image = req.file ? req.file.path : null;
 
-    // Use the user object from middleware
+   
     const user = req.user;
     const owner = `${user.firstName} ${user.lastName}`;
 
-    // Create a new campaign
+   
     const newCampaign = new Campaign({
       title,
       owner,
@@ -121,7 +117,6 @@ app.post("/api/campaigns", upload.single("image"), ensureUserExists, async (req,
 
     const savedCampaign = await newCampaign.save();
 
-    // Add the campaign to the user's list of campaigns
     user.campaigns.push(savedCampaign._id);
     await user.save();
 
@@ -133,8 +128,6 @@ app.post("/api/campaigns", upload.single("image"), ensureUserExists, async (req,
 
   
 
-// Get campaigns by walletId
-// Get campaigns (all or by walletId)
 app.get("/api/campaigns", async (req, res) => {
     const { walletId } = req.query;
   
@@ -142,14 +135,12 @@ app.get("/api/campaigns", async (req, res) => {
       let campaigns;
   
       if (walletId) {
-        // Fetch campaigns by walletId
         campaigns = await Campaign.find({ walletId });
       } else {
-        // Fetch all campaigns
         campaigns = await Campaign.find();
       }
   
-      console.log("Campaigns Fetched:", campaigns); // Log fetched campaigns
+      console.log("Campaigns Fetched:", campaigns); 
       res.json(campaigns);
     } catch (err) {
       console.error("Error fetching campaigns:", err);
@@ -157,12 +148,10 @@ app.get("/api/campaigns", async (req, res) => {
     }
   });
 
-// Delete a campaign
 app.delete("/api/campaigns/:id", async (req, res) => {
     const { id } = req.params;
     
     try {
-      // Find the campaign by id and delete it
       const campaign = await Campaign.findByIdAndDelete(id);
       
       if (!campaign) {
@@ -213,7 +202,6 @@ app.put("/api/users/:id", async (req, res) => {
   }
 });
 
-// Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
