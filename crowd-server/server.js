@@ -12,6 +12,44 @@ app.use(express.json());
 
 connectDB();
 
+// Create or fetch user when wallet connects
+app.post("/api/users/connect-wallet", async (req, res) => {
+  const { walletId } = req.body;
+
+  if (!walletId) {
+    return res.status(400).json({ message: "Wallet ID is required." });
+  }
+
+  try {
+    let user = await User.findOne({ walletId });
+
+    if (!user) {
+      user = new User({
+        walletId,
+        firstName: "Default",
+        lastName: "User",
+        email: `${walletId}@example.com`,
+        person: "Individual",
+        skinTone: "Default",
+        pose: "Default",
+        gender: "Unknown",
+        location: "Unknown",
+      });
+
+      await user.save();
+      console.log(`New user created for wallet: ${walletId}`);
+    } else {
+      console.log(`User already exists for wallet: ${walletId}`);
+    }
+
+    res.status(200).json(user); 
+  } catch (err) {
+    console.error("Error creating/fetching user:", err);
+    res.status(500).json({ message: "Error processing request", error: err.message });
+  }
+});
+
+
 const ensureUserExists = async (req, res, next) => {
   const { walletId, firstName, lastName, email, person, skinTone, pose, gender, location } = req.body;
 
