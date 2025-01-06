@@ -14,6 +14,41 @@ app.use(express.json());
 // Connect to MongoDB
 connectDB();
 
+const ensureUserExists = async (req, res, next) => {
+  const { walletId, firstName, lastName, email, person, skinTone, pose, gender, location } = req.body;
+
+  if (!walletId) {
+    return res.status(400).json({ message: "Wallet ID is required." });
+  }
+
+  try {
+    let user = await User.findOne({ walletId });
+
+    if (!user) {
+      // Create a new user with default or provided values
+      user = new User({
+        walletId,
+        firstName: firstName || "Default",
+        lastName: lastName || "User",
+        email: email || `${walletId}@example.com`,
+        person: person || "Individual",
+        skinTone: skinTone || "Default",
+        pose: pose || "Default",
+        gender: gender || "Unknown",
+        location: location || "Unknown",
+      });
+      await user.save();
+      console.log(`Created new user for walletId: ${walletId}`);
+    }
+
+    req.user = user; // Attach the user object to the request
+    next();
+  } catch (err) {
+    res.status(500).json({ message: "Error checking/creating user", error: err.message });
+  }
+};
+
+
 // Get all activities
 app.get("/api/activities", async (req, res) => {
   try {
@@ -25,43 +60,77 @@ app.get("/api/activities", async (req, res) => {
 });
 
 // Create a campaign
-app.post("/api/campaigns", upload.single("image"), async (req, res) => {
-    try {
-      const { title, walletId, description, amount, donations, progress } = req.body;
-      const image = req.file ? req.file.path : null;
+// app.post("/api/campaigns", upload.single("image"), async (req, res) => {
+//     try {
+//       const { title, walletId, description, amount, donations, progress } = req.body;
+//       const image = req.file ? req.file.path : null;
   
-      // Find the user by walletId to get the full name
-      const user = await User.findOne({ walletId });
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
+//       // Find the user by walletId to get the full name
+//       const user = await User.findOne({ walletId });
+//       if (!user) {
+//         return res.status(404).json({ message: "User not found" });
+//       }
   
-      // Set the owner field using the user's full name
-      const owner = `${user.firstName} ${user.lastName}`;
+//       // Set the owner field using the user's full name
+//       const owner = `${user.firstName} ${user.lastName}`;
   
-      // Create a new campaign
-      const newCampaign = new Campaign({
-        title,
-        owner,
-        walletId,
-        description,
-        image,
-        amount,
-        donations,
-        progress,
-      });
+//       // Create a new campaign
+//       const newCampaign = new Campaign({
+//         title,
+//         owner,
+//         walletId,
+//         description,
+//         image,
+//         amount,
+//         donations,
+//         progress,
+//       });
   
-      const savedCampaign = await newCampaign.save();
+//       const savedCampaign = await newCampaign.save();
   
-      // Add the campaign to the user's list of campaigns
-      user.campaigns.push(savedCampaign._id);
-      await user.save();
+//       // Add the campaign to the user's list of campaigns
+//       user.campaigns.push(savedCampaign._id);
+//       await user.save();
   
-      res.status(201).json(savedCampaign);
-    } catch (err) {
-      res.status(500).json({ message: "Error creating campaign", error: err.message });
-    }
-  });
+//       res.status(201).json(savedCampaign);
+//     } catch (err) {
+//       res.status(500).json({ message: "Error creating campaign", error: err.message });
+//     }
+//   });
+
+app.post("/api/campaigns", upload.single("image"), ensureUserExists, async (req, res) => {
+  try {
+    const { title, walletId, description, amount, donations, progress } = req.body;
+    const image = req.file ? req.file.path : null;
+
+    // Use the user object from middleware
+    const user = req.user;
+    const owner = `${user.firstName} ${user.lastName}`;
+
+    // Create a new campaign
+    const newCampaign = new Campaign({
+      title,
+      owner,
+      walletId,
+      description,
+      image,
+      amount,
+      donations,
+      progress,
+    });
+
+    const savedCampaign = await newCampaign.save();
+
+    // Add the campaign to the user's list of campaigns
+    user.campaigns.push(savedCampaign._id);
+    await user.save();
+
+    res.status(201).json(savedCampaign);
+  } catch (err) {
+    res.status(500).json({ message: "Error creating campaign", error: err.message });
+  }
+});
+
   
 
 // Get campaigns by walletId

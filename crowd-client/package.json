@@ -13,6 +13,7 @@
     "@metamask/detect-provider": "^2.0.0",
     "axios": "^1.7.9",
     "bootstrap": "^5.3.3",
+    "crowd-client": "file:",
     "ethers": "^6.13.4",
     "mdb-react-ui-kit": "^9.0.0",
     "mdb-ui-kit": "^8.1.0",
