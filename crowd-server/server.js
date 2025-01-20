@@ -3,7 +3,7 @@ const cors = require("cors");
 const connectDB = require("./db/connection");
 const { Campaign, Activity, User } = require("./db/schema"); // Ensure models are correctly imported
 const multer = require("multer");
-const upload = multer({ dest: "uploads/" });
+// const upload = multer({ dest: "uploads/" });
 
 const app = express();
 
@@ -25,15 +25,28 @@ app.get("/api/activities", async (req, res) => {
 });
 
 // Create a campaign
-app.post("/api/campaigns", upload.single("image"), async (req, res) => {
+app.post("/api/campaigns", async (req, res) => {
     try {
-      const { title, walletId, description, amount, donations, progress } = req.body;
-      const image = req.file ? req.file.path : null;
+      const { title, walletId, description, amount, donations, progress, image } = req.body;
   
       // Find the user by walletId to get the full name
-      const user = await User.findOne({ walletId });
+      let user = await User.findOne({ walletId });
       if (!user) {
-        return res.status(404).json({ message: "User not found" });
+        const newUser = new User({
+          firstName: "John",
+          lastName: "Doe",
+          email: "john@example.com",
+          person: "John Doe",
+          walletId,
+          skinTone: "White",
+          pose: "1 Happy",
+          gender: "Male",
+          location: "New York, USA",
+          bannerImage: "",
+          campaigns: [],
+        });
+        user = await newUser.save();
+        console.log(`Created new user with walletId ${walletId}`);
       }
   
       // Set the owner field using the user's full name

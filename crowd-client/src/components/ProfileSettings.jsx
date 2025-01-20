@@ -2,9 +2,11 @@ import axios from "axios";
 import { useContext, useEffect, useState } from "react";
 import "../App.css";
 import { WalletContext } from "../ContextAPI/walletContext";
+import { useStateContext } from "../ContextAPI/web3";
 
 function ProfileSettings() {
-  const { account, isConnected } = useContext(WalletContext);
+    const { address, connect} = useStateContext();
+  
   const [formData, setFormData] = useState(null);
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -14,13 +16,13 @@ function ProfileSettings() {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      if (!account) return;
+      if (!address) return;
 
       setLoading(true);
       setError(null);
       try {
         // Fetch user data by wallet ID
-        const response = await axios.get(`${API_URL}/api/users?walletId=${account}`);
+        const response = await axios.get(`${API_URL}/api/users?walletId=${address}`);
         const data = response.data;
         if (!response.data || data.length === 0) {
           throw new Error("User not found.");
@@ -29,7 +31,7 @@ function ProfileSettings() {
         setFormData(user);
 
         // Fetch campaigns by wallet ID
-        const campaignsResponse = await axios.get(`${API_URL}/api/campaigns?walletId=${account}`);
+        const campaignsResponse = await axios.get(`${API_URL}/api/campaigns?walletId=${address}`);
         const campaignsData = campaignsResponse.data;
         if (!campaignsResponse.data) {
           throw new Error("Failed to fetch campaigns.");
@@ -44,7 +46,7 @@ function ProfileSettings() {
     };
 
     fetchUserData();
-  }, [account, API_URL]);
+  }, [address, API_URL]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -79,7 +81,7 @@ function ProfileSettings() {
     }
   };
 
-  if (!isConnected) {
+  if (!address) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ height: "100vh" }}>
         <div className="text-center">

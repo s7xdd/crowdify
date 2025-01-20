@@ -3,10 +3,13 @@ import "../App.css"; // Import your CSS file for styling
 import SettingsPage from "../components/ProfileSettings"; // Import SettingsPage Component (the existing profile form)
 import ProfileFav from "../components/ProfileFav";
 import { WalletContext } from "../ContextAPI/walletContext";
+import { useStateContext } from "../ContextAPI/web3";
 
 function ProfilePage() {
   const [activeTab, setActiveTab] = useState("settings"); // State to manage active tab
-  const {  isConnected,connectWallet } = useContext(WalletContext);
+  // const {  isConnected,connectWallet } = useContext(WalletContext);
+  const { address, connect} = useStateContext();
+
   const renderActiveTab = () => {
     switch (activeTab) {
       case "settings":
@@ -22,13 +25,13 @@ function ProfilePage() {
     }
   
   };
-  if (!isConnected) {
+  if (!address) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ height: "100vh" }}>
         <div className="text-center">
           <h1 className="display-1">Please connect your wallet</h1>
           <p className="lead">You need to connect your wallet to access this page.</p>
-          <button className="btn btn-success" onClick={connectWallet}>
+          <button className="btn btn-success" onClick={connect}>
             Connect Wallet
           </button>
         </div>

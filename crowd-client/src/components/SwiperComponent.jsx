@@ -1,17 +1,31 @@
-import { useRef, useState, useContext } from "react";
+import { useRef, useState, useContext, useEffect } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+import { ethers } from "ethers";
 import axios from "axios";
 import { WalletContext } from "../ContextAPI/walletContext";
+import { checkIfImage } from "../utils";
+import { StateContextProvider, useStateContext } from "../ContextAPI/web3";
 
 function SwiperComponent() {
   const swiperRef = useRef(null);
-  const { account } = useContext(WalletContext);
-  const [campaignDetails, setCampaignDetails] = useState("");
+  const { publishCampaign, address } = useStateContext();
+  const [form, setForm] = useState({
+    title: "",
+    description: "",
+    deadline: "",
+    goal: "",
+    image: "",
+    target: "",
+  });
   const [errors, setErrors] = useState({});
-  const [campaignTitle, setCampaignTitle] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    console.log("form", form);
+  }, [form]);
 
   const handleNext = () => {
     swiperRef.current?.slideNext();
@@ -21,85 +35,74 @@ function SwiperComponent() {
     swiperRef.current?.slidePrev();
   };
 
+  const handleFormFieldChange = (fieldName, value) => {
+    setForm((prevState) => ({ ...prevState, [fieldName]: value }));
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const formData = new FormData(event.target);
 
-    const title = campaignTitle;
-    const description = campaignDetails;
-    const deadline = formData.get("campaignDeadline");
-    const goal = formData.get("campaignGoal");
-    const imageFile = formData.get("campaignImage");
-
+    const { title, description, deadline, goal, image } = form;
     const errors = {};
-    if (!title) {
-      errors.title = "Campaign title is required";
-    }
-    if (!description) {
-      errors.description = "Campaign description is required";
-    }
-    if (!deadline) {
-      errors.deadline = "Campaign deadline is required";
-    }
-    if (!goal) {
-      errors.goal = "Campaign goal is required";
-    }
-    if (!imageFile) {
-      errors.imageFile = "Campaign image is required";
-    }
+    if (!title) errors.title = "Campaign title is required";
+    if (!description) errors.description = "Campaign description is required";
+    if (!deadline) errors.deadline = "Campaign deadline is required";
+    if (!goal) errors.goal = "Campaign goal is required";
+    if (!image) errors.image = "Campaign image is required";
 
     if (Object.keys(errors).length > 0) {
       setErrors(errors);
       return;
     }
 
-    const newCampaign = {
-      title,
-      owner: "Owner Name",
-      account,
-      description,
-      deadline,
-      walletId: account,
-      goal,
-      amount: "0.00",
-      donations: 0,
-      progress: 0,
-    };
+    // Check if image URL is valid
+    checkIfImage(image, async (exists) => {
+      if (!exists) {
+        setErrors({ image: "Provide a valid image URL" });
+        return;
+      }
 
-    if (imageFile) {
-      newCampaign.image = imageFile;
-    }
+      try {
+        setIsLoading(true);
 
-    const campaignFormData = new FormData();
-    campaignFormData.append("title", title);
-    campaignFormData.append("owner", "Owner Name");
-    campaignFormData.append("walletId", account);
-    campaignFormData.append("description", description);
-    campaignFormData.append("deadline", deadline);
-    campaignFormData.append("goal", goal);
-    campaignFormData.append("amount", "0.00");
-    campaignFormData.append("donations", 0);
-    campaignFormData.append("progress", 0);
+        await publishCampaign({
+          ...form,
+          target: ethers.utils.parseUnits(form.goal, 18),
+          deadline: new Date(form.deadline).getTime() / 1000,
+        });
 
-    if (imageFile) {
-      campaignFormData.append("image", imageFile);
-    }
+        console.log("Campaign published to blockchain");
 
-    try {
-      const response = await axios.post(
-        "http://localhost:5000/api/campaigns",
-        campaignFormData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-      console.log("Campaign created:", response.data);
-      alert("Campaign created successfully!");
-    } catch (error) {
-      console.error("Error creating campaign:", error);
-    }
+        const campaignData = {
+          ...form,
+          owner: "Owner Name",
+          account: address,
+          walletId: address,
+          amount: "0.00",
+          donations: 0,
+          progress: 0,
+        };
+
+        const response = await axios.post(
+          "http://localhost:5000/api/campaigns",
+          campaignData,
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        console.log("Campaign saved to backend:", response.data);
+
+        alert("Campaign created successfully!");
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error creating campaign:", error);
+        alert("Failed to create the campaign. Please try again.");
+        setIsLoading(false);
+      }
+    });
   };
 
   return (
@@ -109,6 +112,7 @@ function SwiperComponent() {
       slidesPerView={1}
       onSwiper={(swiper) => (swiperRef.current = swiper)}
     >
+      {/* Step 1 */}
       <SwiperSlide className="d-flex flex-column justify-content-center align-items-center bg-light border p-4 rounded-0">
         <div className="text-center">
           <h3>1. Tell about your campaign</h3>
@@ -119,18 +123,20 @@ function SwiperComponent() {
             <label>Your campaign title</label>
             <input
               type="text"
-              name="campaignTitle"
+              name="title"
               placeholder="Write your beautiful title here"
-              value={campaignTitle}
-              onChange={(event) => setCampaignTitle(event.target.value)}
+              value={form.title}
+              onChange={(event) =>
+                handleFormFieldChange("title", event.target.value)
+              }
               required
             />
             {errors.title && <div className="text-danger">{errors.title}</div>}
           </div>
           <div className="mb-3">
             <ReactQuill
-              value={campaignDetails}
-              onChange={setCampaignDetails}
+              value={form.description}
+              onChange={(value) => handleFormFieldChange("description", value)}
               placeholder="Describe your campaign here"
             />
             {errors.description && <div className="text-danger">{errors.description}</div>}
@@ -145,6 +151,7 @@ function SwiperComponent() {
         </form>
       </SwiperSlide>
 
+      {/* Step 2 */}
       <SwiperSlide className="d-flex flex-column justify-content-center align-items-center bg-light border p-4 rounded-0">
         <div className="text-center">
           <h3>2. Give more details</h3>
@@ -155,8 +162,11 @@ function SwiperComponent() {
             <label>Create a deadline for your campaign</label>
             <input
               type="date"
-              name="campaignDeadline"
-              placeholder="dd/mm/yyyy"
+              name="deadline"
+              value={form.deadline}
+              onChange={(event) =>
+                handleFormFieldChange("deadline", event.target.value)
+              }
               required
             />
             {errors.deadline && <div className="text-danger">{errors.deadline}</div>}
@@ -165,39 +175,29 @@ function SwiperComponent() {
             <label>Goal</label>
             <input
               type="number"
-              name="campaignGoal"
-              placeholder="e.g., $10,000"
+              name="goal"
+              placeholder="e.g., 10 ETH"
+              value={form.goal}
+              onChange={(event) =>
+                handleFormFieldChange("goal", event.target.value)
+              }
               required
             />
             {errors.goal && <div className="text-danger">{errors.goal}</div>}
           </div>
           <div className="mb-3">
-            <label>Upload a beautiful cover image</label>
-            <div
-              style={{
-                border: "2px dashed #ccc",
-                padding: "20px",
-                borderRadius: "8px",
-                textAlign: "center",
-                backgroundColor: "#f9f9f9",
-                cursor: "pointer",
-              }}
-              onClick={() => document.getElementById("fileInput").click()}
-            >
-              <p style={{ margin: 0 }}>
-                Click to upload or drag and drop your image here.
-                <br />
-                <small>SVG, PNG, JPG, GIF (max. 1MB)</small>
-              </p>
-            </div>
+            <label>Campaign image</label>
             <input
-              id="fileInput"
-              type="file"
-              name="campaignImage"
-              accept=".svg, .png, .jpg, .jpeg, .gif"
-              style={{ display: "none" }}
+              type="url"
+              name="image"
+              placeholder="Image URL"
+              value={form.image}
+              onChange={(event) =>
+                handleFormFieldChange("image", event.target.value)
+              }
+              required
             />
-            {errors.imageFile && <div className="text-danger">{errors.imageFile}</div>}
+            {errors.image && <div className="text-danger">{errors.image}</div>}
           </div>
           <button
             type="button"
@@ -207,7 +207,7 @@ function SwiperComponent() {
             Previous
           </button>
           <button type="submit" className="btn btn-success">
-            Submit
+            {isLoading ? "Submitting..." : "Submit"}
           </button>
         </form>
       </SwiperSlide>
@@ -216,4 +216,5 @@ function SwiperComponent() {
 }
 
 export default SwiperComponent;
+
 

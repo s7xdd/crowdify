@@ -55,7 +55,7 @@ e.preventDefault();
       });
 
       window.ethereum.on('chainChanged', () => {
-        window.location.reload(); // Optional: Reload the app on network change
+        window.location.reload(); 
       });
     }
   }, []);

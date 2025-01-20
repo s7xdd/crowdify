@@ -5,14 +5,16 @@ import App from './App.jsx'
 import './bootstrap.min.css'
 import {BrowserRouter} from 'react-router-dom'
 import { WalletProvider } from './ContextAPI/walletContext.jsx'
+import { StateContextProvider } from './ContextAPI/web3.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
-    <WalletProvider>
+    <StateContextProvider>
+    {/* <WalletProvider> */}
       <App />
-    </WalletProvider>
+    {/* </WalletProvider> */}
+    </StateContextProvider>
     </BrowserRouter>
-    
   </StrictMode>,
 )

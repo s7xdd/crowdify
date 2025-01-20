@@ -8,10 +8,12 @@ import logo from "../assets/fire-simple-bold-svgrepo-com copy.svg";
 import { Link } from "react-router-dom";
 import { useContext, useState } from "react";
 import { WalletContext } from "../ContextAPI/walletContext";
+import { useStateContext } from "../ContextAPI/web3";
 
 function ResponsiveNav() {
-  const { account, isConnected, connectWallet, disconnectWallet } = useContext(WalletContext);
   const [searchTerm, setSearchTerm] = useState("");
+
+  const { connect, address } = useStateContext();
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -19,7 +21,6 @@ function ResponsiveNav() {
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    // Implement search logic here
     console.log("Search Term:", searchTerm);
   };
 
@@ -34,16 +35,13 @@ function ResponsiveNav() {
       }}
     >
       <Container>
-        {/* Logo */}
         <Navbar.Brand as={Link} to="/" className="d-flex align-items-center gap-2">
           <img height="40rem" width="40rem" src={logo} alt="Logo" />
           <h2 style={{ fontSize: "20px", fontWeight: "700", margin: 0 }}>CROWDIFY</h2>
         </Navbar.Brand>
 
-        {/* Navbar Toggle Button */}
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
 
-        {/* Navbar Content */}
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto flex-column flex-lg-row align-items-lg-center gap-lg-4 mt-3 mt-lg-0">
             <Nav.Link as={Link} to="/home" className="text-decoration-none">
@@ -60,7 +58,6 @@ function ResponsiveNav() {
             </Nav.Link>
           </Nav>
 
-          {/* Search and Wallet Actions */}
           <Form className="d-flex align-items-center gap-3 mt-3 mt-lg-0" onSubmit={handleSearchSubmit}>
             <Form.Control
               type="text"
@@ -72,7 +69,7 @@ function ResponsiveNav() {
             />
 
             <div>
-              {isConnected ? (
+              {address ? (
                 <p
                   className="text-success text-truncate mb-0"
                   style={{
@@ -83,19 +80,24 @@ function ResponsiveNav() {
                     textOverflow: "ellipsis",
                   }}
                 >
-                  Connected: {account.slice(-20)}
+                  Connected: {address}
                 </p>
               ) : (
-                <button className="btn btn-success rounded" onClick={connectWallet}>
+                <button
+                  type="button"
+                  className="btn btn-success rounded"
+                  onClick={() => connect()}
+                >
                   Connect Wallet
                 </button>
               )}
             </div>
 
-            {isConnected && (
+            {address && (
               <button
+                type="button"
                 className="btn btn-danger rounded"
-                onClick={disconnectWallet}
+                // onClick={disconnectWallet}
               >
                 Disconnect
               </button>
