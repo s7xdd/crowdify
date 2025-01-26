@@ -1,7 +1,11 @@
 const express = require("express");
 const cors = require("cors");
 const connectDB = require("./db/connection");
-const { Campaign, Activity, User } = require("./db/schema"); // Ensure models are correctly imported
+const { Campaign } = require("./model/campaign");
+const { Activity } = require("./model/activity");
+const { User } = require("./model/user");
+const activityRoutes = require("./routes/ActivityRoutes");
+
 const multer = require("multer");
 // const upload = multer({ dest: "uploads/" });
 
@@ -14,6 +18,9 @@ app.use(express.json());
 // Connect to MongoDB
 connectDB();
 
+app.use("/api/activities", activityRoutes);
+
+
 // Get all activities
 app.get("/api/activities", async (req, res) => {
   try {
@@ -23,6 +30,7 @@ app.get("/api/activities", async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
+
 
 // Create a campaign
 app.post("/api/campaigns", async (req, res) => {
