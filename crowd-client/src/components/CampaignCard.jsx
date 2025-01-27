@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import Col from "react-bootstrap/esm/Col";
-import Row from "react-bootstrap/esm/Row";
+import Col from "react-bootstrap/Col";
+import Row from "react-bootstrap/Row";
 import Card from "react-bootstrap/Card";
 import Modal from "react-bootstrap/Modal";
 import { useStateContext } from "../ContextAPI/web3";
+import { ethers } from "ethers";
 
 function CampaignCard() {
   const [campaignData, setCampaignData] = useState([]);
@@ -55,9 +56,16 @@ function CampaignCard() {
     }
 
     try {
-      const campaignId = selectedCampaign._id; // Campaign ID from your backend
-      await donate(campaignId, donationAmount); // Web3 donation function
+      const campaignId = selectedCampaign._id;
+
+      // Ensure the donation amount is a properly formatted string
+
+            console.log(campaignId, donationAmount);
+      
+      await donate("error",campaignId, donationAmount);
+      
       alert(`Successfully donated ${donationAmount} ETH to ${selectedCampaign.title}`);
+
       setDonateModalShow(false);
       setDonationAmount("");
     } catch (error) {
@@ -91,6 +99,8 @@ function CampaignCard() {
               <Card className="shadow-lg border-0 rounded">
                 <Card.Img
                   variant="top"
+                  width={"100px"}
+                  height={"60px"}
                   src={campaign.image || "https://via.placeholder.com/150"}
                   className="img-fluid rounded-top"
                   alt="Campaign"
@@ -98,21 +108,21 @@ function CampaignCard() {
                   style={{ cursor: "pointer" }}
                 />
                 <Card.Body>
-                  <Card.Title className="text-primary">{campaign.title || "No Title"}</Card.Title>
-                  <Card.Text className="text-secondary">{campaign.description || "No description provided."}</Card.Text>
+                  <Card.Title className="text-primary">{campaign.title}</Card.Title>
+                  <Card.Text className="text-secondary">{campaign.description}</Card.Text>
                   <div className="progress" style={{ height: "10px" }}>
                     <div
                       className="progress-bar bg-success"
                       role="progressbar"
-                      style={{ width: `${campaign.progress || 0}%` }}
-                      aria-valuenow={campaign.progress || 0}
+                      style={{ width: `${campaign.progress}%` }}
+                      aria-valuenow={campaign.progress}
                       aria-valuemin="0"
                       aria-valuemax="100"
                     ></div>
                   </div>
                   <div className="d-flex justify-content-between mt-2">
-                    <p className="text-primary">Target: {campaign.amount || "0"} ETH</p>
-                    <p className="text-secondary">Progress: {campaign.progress || 0}%</p>
+                    <p className="text-primary">Target: {campaign.amount} ETH</p>
+                    <p className="text-secondary">Progress: {campaign.progress}%</p>
                   </div>
                   <button className="btn btn-success" onClick={() => handleDonate(campaign)}>Donate</button>
                 </Card.Body>
@@ -131,11 +141,14 @@ function CampaignCard() {
           <div className="mt-3">
             <label htmlFor="donationAmount" className="form-label">Donation Amount (ETH):</label>
             <input
-              type="number"
+              type="text"
               className="form-control rounded-pill p-3"
               id="donationAmount"
               value={donationAmount}
-              onChange={(e) => setDonationAmount(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                setDonationAmount(value);
+              }}
               placeholder="Enter donation amount"
               min="0.01"
             />
@@ -155,3 +168,4 @@ function CampaignCard() {
 }
 
 export default CampaignCard;
+

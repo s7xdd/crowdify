@@ -67,8 +67,11 @@ function SwiperComponent() {
 
         await publishCampaign({
           ...form,
-          target: ethers.utils.parseUnits(form.goal, 18),
-          deadline: new Date(form.deadline).getTime() / 1000,
+          target: ethers.utils.parseUnits(
+            parseFloat(form.goal).toFixed(18),  // Ensure proper formatting
+            "ether"  // Use 'ether' for readability (equivalent to 10^18)
+          ),
+          deadline: Math.floor(new Date(form.deadline).getTime() / 1000),
         });
 
         console.log("Campaign published to blockchain");
@@ -176,10 +179,11 @@ function SwiperComponent() {
             <input
               type="number"
               name="goal"
+              step="1"  // Prevents decimals
               placeholder="e.g., 10 ETH"
               value={form.goal}
               onChange={(event) =>
-                handleFormFieldChange("goal", event.target.value)
+                handleFormFieldChange("goal", event.target.value.replace(/[^0-9]/g, ""))
               }
               required
             />

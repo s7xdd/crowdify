@@ -17,4 +17,4 @@ const userSchema = new Schema({
 
 const Users = mongoose.model("CrowdifyUsers", userSchema);
 
-module.exports = { Users };
+module.exports =  Users ;

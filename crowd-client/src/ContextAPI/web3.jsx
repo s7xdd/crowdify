@@ -1,4 +1,4 @@
-import React, { useContext, createContext, useEffect, useState } from "react";
+import { useContext, createContext, useEffect, useState } from "react";
 import { ethers } from "ethers";
 import CampaignABI from "./CampaignABI.json";
 
@@ -10,7 +10,7 @@ export const StateContextProvider = ({ children }) => {
   const [signer, setSigner] = useState(null);
   const [contract, setContract] = useState(null);
 
-  const CONTRACT_ADDRESS = "0x0165878A594ca255338adfa4d48449f69242Eb8F";
+  const CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 
   const connect = async () => {
     if (typeof window.ethereum === "undefined") {
@@ -73,7 +73,7 @@ export const StateContextProvider = ({ children }) => {
         form.title,
         form.description,
         form.target,
-        new Date(form.deadline).getTime(),
+        new Date(form.deadline).getTime() / 1000,
         form.image
       );
       await tx.wait();
@@ -141,27 +141,29 @@ export const StateContextProvider = ({ children }) => {
       console.error("Contract or wallet not connected");
       return;
     }
-
+  
     try {
+      if (typeof amount !== "string" || isNaN(amount) || parseFloat(amount) <= 0) {
+        throw new Error("Invalid donation amount");
+      }
+  
+      // Convert to BigNumber safely
+      const formattedAmount = ethers.utils.parseEther(amount);
+      console.log("Formatted Amount:", formattedAmount.toString());
+  
       const tx = await contract.donateToCampaign(pId, {
-        value: ethers.utils.parseEther(amount),
+        value: formattedAmount,
       });
       await tx.wait();
       console.log("Donation successful:", tx);
       return tx;
     } catch (error) {
       console.error("Error donating:", error);
-      if (error.code === 4001) {
-        console.error("User rejected the transaction");
-      } else if (error.code === -32603) {
-        console.error("Reverted: ", error.data);
-      } else {
-        console.error("Unknown error:", error);
-      }
       throw error;
     }
   };
-
+  
+  
   const getDonations = async (pId) => {
     if (!contract) {
       console.error("Contract not connected");

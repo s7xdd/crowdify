@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const { Users } = require("./user");
+
 const Schema = require("mongoose").Schema;
 
 const activitySchema = new Schema({
@@ -10,4 +10,4 @@ const activitySchema = new Schema({
 });
 
 const Activity = mongoose.model("CrowdifyActivity", activitySchema);
-module.exports = { Activity };
+module.exports =  Activity ;

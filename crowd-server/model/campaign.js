@@ -14,5 +14,5 @@ const campaignSchema = new Schema({
   
   const Campaign = mongoose.model("CrowdifyCampaign", campaignSchema);
 
-  module.exports = { Campaign };
+  module.exports =  Campaign ;
 
